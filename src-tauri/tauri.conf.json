@@ -3,37 +3,18 @@
   "identifier": "com.my-react-app.dev",
   "productName": "react-tauri-app",
   "version": "0.1.0",
-  "frontend": {
-    "dist": "../dist",
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "frontendDist": "../dist",
     "devUrl": "http://localhost:5173"
   },
-  "build": {
-    "dev": {
-      "before": "pnpm dev"
-    },
-    "build": {
-      "before": "pnpm build"
-    }
-  },
-  "windows": [
-    {
-      "label": "main",
-      "title": "React Tauri App",
-      "width": 800,
-      "height": 600
-    }
-  ],
-  "updater": {
-    "active": false
-  },
   "bundle": {
+    "active": true,
+    "targets": "all",
     "windows": {
       "webviewInstallMode": {
         "type": "embedBootstrapper"
-      },
-      "nsis": {
-        "oneClick": false,
-        "allowToChangeInstallationDirectory": true
       }
     }
   }

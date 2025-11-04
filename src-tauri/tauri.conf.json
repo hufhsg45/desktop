@@ -1,4 +1,3 @@
-
 {
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -11,9 +10,13 @@
     "version": "0.1.0"
   },
   "tauri": {
+    "updater": {
+      "active": false
+    },
     "bundle": {
       "active": true,
       "identifier": "com.my-react-app.dev",
+      "targets": "all",
       "windows": {
         "webviewInstallMode": {
           "type": "embedBootstrapper"
@@ -23,11 +26,6 @@
           "allowToChangeInstallationDirectory": true
         }
       }
-    },
-    "updater": {
-      "active": false
-    },
-      "targets": "all"
     }
   }
 }

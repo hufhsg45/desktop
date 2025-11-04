@@ -1,30 +1,39 @@
 {
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "identifier": "com.my-react-app.dev",
+  "productName": "react-tauri-app",
+  "version": "0.1.0",
+  "frontend": {
+    "dist": "../dist",
+    "devUrl": "http://localhost:5173"
+  },
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:5173",
-    "distDir": "../dist"
-  },
-  "package": {
-    "productName": "react-tauri-app",
-    "version": "0.1.0"
-  },
-  "tauri": {
-    "updater": {
-      "active": false
+    "dev": {
+      "before": "pnpm dev"
     },
-    "bundle": {
-      "active": true,
-      "identifier": "com.my-react-app.dev",
-      "targets": "all",
-      "windows": {
-        "webviewInstallMode": {
-          "type": "embedBootstrapper"
-        },
-        "nsis": {
-          "oneClick": false,
-          "allowToChangeInstallationDirectory": true
-        }
+    "build": {
+      "before": "pnpm build"
+    }
+  },
+  "windows": [
+    {
+      "label": "main",
+      "title": "React Tauri App",
+      "width": 800,
+      "height": 600
+    }
+  ],
+  "updater": {
+    "active": false
+  },
+  "bundle": {
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
+      "nsis": {
+        "oneClick": false,
+        "allowToChangeInstallationDirectory": true
       }
     }
   }

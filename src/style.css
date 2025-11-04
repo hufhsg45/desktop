@@ -1,0 +1,16 @@
+@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.0/dist/tailwind.min.css');
+
+h1,
+p {
+  font-family: Lato;
+}
+
+.mm-toolbar img {
+  display: inline;
+}
+
+[data-panel-resize-handle-id] {
+  background-color: #ccc;
+  width: 4px;
+  border: 1px solid #aaa;
+}

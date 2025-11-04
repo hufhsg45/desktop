@@ -1,3 +1,1 @@
-# markmap
-
-- https://markmap.js.org
+null

@@ -4,13 +4,21 @@
     "beforeBuildCommand": "pnpm build",
     "beforeDevCommand": "pnpm dev",
     "distDir": "../dist",
-    "devPath": "http://localhost:5173"
+    "devPath": "http://localhost:5173",
+    "withGlobalTauri": false
   },
   "package": {
     "productName": "react-tauri-app",
     "version": "0.1.0"
   },
   "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
     "bundle": {
       "active": true,
       "identifier": "com.my-react-app.dev",
@@ -20,6 +28,9 @@
           "type": "embedBootstrapper"
         }
       }
+    },
+    "security": {
+      "csp": null
     },
     "windows": [
       {

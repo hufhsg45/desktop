@@ -55,9 +55,4 @@ jobs:
             src-tauri/target/release/bundle/*/*.msi
           tag_name: app-v${{ github.run_number }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}_number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}get/release/bundle/*/*.exe
-            src-tauri/target/release/bundle/*/*.msi
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

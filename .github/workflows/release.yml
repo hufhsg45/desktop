@@ -31,9 +31,6 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
-      - name: Check Tauri CLI version
-        run: pnpm tauri -V
-
       - name: Build the application
         run: pnpm dlx tauri build
 

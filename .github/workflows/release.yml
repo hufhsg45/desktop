@@ -35,7 +35,7 @@ jobs:
         run: pnpm tauri -V
 
       - name: Build the application
-        run: pnpm dlx tauri build
+        run: pnpm tauri build
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
@@ -46,3 +46,4 @@ jobs:
           tag_name: app-v${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+ }}

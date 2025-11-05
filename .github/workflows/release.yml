@@ -1,9 +1,10 @@
 name: Release Tauri App
 
 on:
+  # 推荐：只在推送语义化版本标签时运行发布流程 (e.g., v1.0.0, v1.0.1)
   push:
-    branches:
-      - main
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build-tauri:
@@ -14,45 +15,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-  - name: Install Rust toolchain
-    uses: actions-rs/toolchain@v1
-    with:
-      toolchain: stable
-      profile: minimal
-      override: true
-  
-  # ⬇️ 修复 PATH 错误的重点：先设置 pnpm
-  - uses: pnpm/action-setup@v3
-    name: Set up pnpm CLI
-    with:
-      version: 8
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      # 优化：在一个步骤中安装 Node.js 和 pnpm
+      - name: Install Node.js and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm' # 启用缓存
+      
+      - uses: pnpm/action-setup@v3
+        name: Set up pnpm
+        with:
+          version: 8
 
-  # ⬇️ 其次设置 Node.js，以便它能正确利用 pnpm 缓存
-  - name: Install Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: 20
-      cache: 'pnpm' # 启用缓存
+      - name: Install frontend dependencies
+        run: pnpm install
 
-  - name: Install frontend dependencies
-    run: pnpm install # 此时 pnpm 应该已在 PATH 中
+      - name: Build the application (Windows)
+        # Tauri 会自动根据 Cargo.toml 中的版本号进行打包
+        run: pnpm tauri build
 
-  - name: Build the application (Windows)
-    run: pnpm tauri build
-
-  - name: Upload release assets
-    uses: softprops/action-gh-release@v1
-    with:
-      tag_name: ${{ github.ref_name }}
-      name: Release ${{ github.ref_name }}
-      files: |
-        src-tauri/target/release/bundle/*/*.exe
-        src-tauri/target/release/bundle/*/*.msi
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}��通配符捕获 Windows 安装器 (MSI 和 NSIS .exe)
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          # 使用 Git Tag 名称作为发布标签
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          # 改进：使用更广泛的通配符捕获 Windows 安装器 (MSI 和 NSIS .exe)
           files: |
             src-tauri/target/release/bundle/*/*.exe
             src-tauri/target/release/bundle/*/*.msi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
- }}

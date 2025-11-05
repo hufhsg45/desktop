@@ -9,9 +9,18 @@
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173"
   },
+  "app": {
+    "windows": [
+      {
+        "title": "React Tauri App",
+        "width": 800,
+        "height": 600
+      }
+    ]
+  },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["all"],
     "windows": {
       "webviewInstallMode": {
         "type": "embedBootstrapper"

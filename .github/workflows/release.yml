@@ -1,13 +1,13 @@
 name: Release Tauri App
 
-permissions:
-  contents: write
-
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-tauri:
@@ -29,7 +29,6 @@ jobs:
       - name: Cache pnpm modules
         uses: actions/cache@v4
         with:
-          # cross-platform safe location: use PNPM store path variable
           path: ~/.pnpm-store
           key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
@@ -48,6 +47,8 @@ jobs:
             src-tauri/target/release/bundle/**/*.exe
             src-tauri/target/release/bundle/**/*.msi
           tag_name: app-v${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}ber }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}��用更广泛的通配符捕获 Windows 安装器 (MSI 和 NSIS .exe)
           files: |

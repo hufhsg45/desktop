@@ -50,7 +50,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}ber }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}��用更广泛的通配符捕获 Windows 安装器 (MSI 和 NSIS .exe)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}��用更广泛的通配符捕获 Windows 安装器 (MSI 和 NSIS .exe)
           files: |
             src-tauri/target/release/bundle/*/*.exe
             src-tauri/target/release/bundle/*/*.msi

@@ -4,56 +4,55 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build-tauri:
+    permissions:
+      contents: write # 允许写入 releases
     runs-on: windows-latest
-
     steps:
-      # 1. Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Install Rust
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+  - name: Install Rust toolchain
+    uses: actions-rs/toolchain@v1
+    with:
+      toolchain: stable
+      profile: minimal
+      override: true
+  
+  # ⬇️ 修复 PATH 错误的重点：先设置 pnpm
+  - uses: pnpm/action-setup@v3
+    name: Set up pnpm CLI
+    with:
+      version: 8
 
-      # 3. Setup Node.js and pnpm
-      - name: Setup Node.js and pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8
-          node-version: 20
+  # ⬇️ 其次设置 Node.js，以便它能正确利用 pnpm 缓存
+  - name: Install Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: 20
+      cache: 'pnpm' # 启用缓存
 
-      # 4. Cache pnpm modules
-      - name: Cache pnpm modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+  - name: Install frontend dependencies
+    run: pnpm install # 此时 pnpm 应该已在 PATH 中
 
-      # 5. Install dependencies
-      - name: Install dependencies
-        run: pnpm install
+  - name: Build the application (Windows)
+    run: pnpm tauri build
 
-      # 6. Build the Tauri app
-      - name: Build the Tauri app
-        run: pnpm tauri build
-
-      # 7. Upload release assets
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v1
-        with:
-          # 使用通配符捕获 Windows 安装器（MSI 和 NSIS .exe）
+  - name: Upload release assets
+    uses: softprops/action-gh-release@v1
+    with:
+      tag_name: ${{ github.ref_name }}
+      name: Release ${{ github.ref_name }}
+      files: |
+        src-tauri/target/release/bundle/*/*.exe
+        src-tauri/target/release/bundle/*/*.msi
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}��通配符捕获 Windows 安装器 (MSI 和 NSIS .exe)
           files: |
             src-tauri/target/release/bundle/*/*.exe
             src-tauri/target/release/bundle/*/*.msi
-          tag_name: app-v${{ github.run_number }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+ }}

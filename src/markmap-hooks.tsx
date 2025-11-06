@@ -6,6 +6,10 @@ import {
   PanelGroup,
   PanelResizeHandle,
 } from "react-resizable-panels";
+import CodeMirror from '@uiw/react-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+import { languages } from '@codemirror/language-data';
+import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 
 const initValue = `# markmap
 
@@ -141,18 +145,21 @@ export default function MarkmapHooks() {
     mm.fit();
   }, [value]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
+  const handleChange = (value: string) => {
+    setValue(value);
   };
 
   return (
     <PanelGroup direction="horizontal" className="flex-1">
       <Panel>
-        <div className="h-full flex flex-col">
-          <textarea
-            className="w-full flex-1 border border-gray-400"
+        <div className="h-full flex flex-col overflow-auto">
+          <CodeMirror
+            className="w-full flex-1 border border-gray-400 text-base"
             value={value}
             onChange={handleChange}
+            theme={vscodeLight}
+            extensions={[markdown({ base: markdown.markdown, codeLanguages: languages })]}
+            lineNumbers={true}
           />
         </div>
       </Panel>

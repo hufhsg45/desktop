@@ -53,6 +53,7 @@ jobs:
           files: |
             src-tauri/target/release/bundle/*/*.exe
             src-tauri/target/release/bundle/*/*.msi
+            src-tauri/target/release/react-tauri-app.exe
           tag_name: app-v${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

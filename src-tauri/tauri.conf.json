@@ -26,6 +26,10 @@
     "bundle": {
       "active": true,
       "identifier": "com.my-react-app.dev",
+      "icon": [
+        "icons/icon.ico",
+        "icons/icon.png"
+      ],
       "targets": "all",
       "windows": {
         "webviewInstallMode": {

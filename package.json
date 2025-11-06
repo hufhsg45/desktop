@@ -13,6 +13,7 @@
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
     "@codemirror/language-data": "^6.5.2",
+    "@codemirror/view": "^6.38.6",
     "@tauri-apps/api": "^1.5.0",
     "@uiw/codemirror-theme-github": "^4.25.3",
     "@uiw/codemirror-theme-vscode": "^4.25.3",

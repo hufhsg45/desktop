@@ -10,6 +10,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
+import { lineNumbers } from '@codemirror/view';
 
 const initValue = `# markmap
 
@@ -158,8 +159,7 @@ export default function MarkmapHooks() {
             value={value}
             onChange={handleChange}
             theme={vscodeLight}
-            extensions={[markdown({ base: markdown.markdown, codeLanguages: languages })]}
-            lineNumbers={true}
+            extensions={[markdown({ codeLanguages: languages }), lineNumbers()]}
           />
         </div>
       </Panel>

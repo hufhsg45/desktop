@@ -293,7 +293,7 @@ export default function MarkmapHooks() {
   };
 
   return (
-    <div className="h-full w-full flex flex-col bg-white rounded-lg overflow-hidden border border-gray-300">
+    <div className="h-full w-full flex flex-col bg-white overflow-hidden">
       {/* --- Custom Title Bar --- */}
       <div className="flex items-center bg-gray-50 border-b border-gray-200 flex-shrink-0">
         <div className="flex-shrink-0 pl-2">

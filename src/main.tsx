@@ -6,7 +6,7 @@ import './style.css';
 
 function App() {
   return (
-    <div className="flex flex-row h-screen p-2">
+    <div className="flex flex-row h-screen">
       <MarkmapHooks />
     </div>
   );

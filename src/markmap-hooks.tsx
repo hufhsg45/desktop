@@ -30,8 +30,14 @@ const MinimizeIcon = () => (
 );
 
 const MaximizeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3v18h18V3H3z"/>
+  </svg>
+);
+
+const RestoreIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8V5a2 2 0 0 1 2-2h3m11 0h-3a2 2 0 0 0-2 2v3m0 11v-3a2 2 0 0 1 2-2h3m-16 0h3a2 2 0 0 1 2 2v3"/>
+        <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h11v11H4zM9 4v5h11V4H9z"/>
     </svg>
 );
 
@@ -162,11 +168,28 @@ function MenuBar() {
 }
 
 function WindowControls() {
+  const [isMaximized, setIsMaximized] = useState(false);
   const buttonStyle = "w-12 h-8 flex justify-center items-center hover:bg-gray-200 transition-colors duration-150";
+
+  useEffect(() => {
+    let unlisten;
+    const updateMaximizedState = async () => {
+        const maximized = await appWindow.isMaximized();
+        setIsMaximized(maximized);
+    }
+    updateMaximizedState();
+    appWindow.onResized(() => {
+        updateMaximizedState();
+    }).then(ul => { unlisten = ul; });
+    return () => unlisten && unlisten();
+}, []);
+
   return (
     <div className="flex flex-shrink-0">
       <button className={buttonStyle} onClick={() => appWindow.minimize()}><MinimizeIcon /></button>
-      <button className={buttonStyle} onClick={() => appWindow.toggleMaximize()}><MaximizeIcon /></button>
+      <button className={buttonStyle} onClick={() => appWindow.toggleMaximize()}>
+        {isMaximized ? <RestoreIcon /> : <MaximizeIcon />}
+      </button>
       <button className={`${buttonStyle} hover:bg-red-500 hover:text-white`} onClick={() => appWindow.close()}><CloseIcon /></button>
     </div>
   );
@@ -181,8 +204,6 @@ export default function MarkmapHooks() {
   const newTabIndex = useRef(1);
 
   useEffect(() => {
-    // This check ensures Tauri-specific code only runs on the client-side
-    // and in the Tauri environment.
     if (typeof window !== 'undefined' && window.__TAURI__) {
       setIsTauri(true);
     }
@@ -264,7 +285,7 @@ export default function MarkmapHooks() {
   return (
     <div className="h-full w-full flex flex-col bg-white rounded-lg overflow-hidden border border-gray-300">
       {/* --- Custom Title Bar --- */}
-      <div className="flex items-center bg-gray-50 border-b border-gray-200">
+      <div className="flex items-center bg-gray-50 border-b border-gray-200 flex-shrink-0">
         <div className="flex-shrink-0 pl-2">
           <Tabs
             type="editable-card"
@@ -283,7 +304,6 @@ export default function MarkmapHooks() {
           />
         </div>
         
-        {/* This is the draggable spacer */}
         <div data-tauri-drag-region className="flex-grow h-8"></div>
 
         <div className="flex-shrink-0">
@@ -298,18 +318,20 @@ export default function MarkmapHooks() {
         {activeTab && (
           <PanelGroup direction="horizontal" className="w-full h-full">
             <Panel>
-              <div className="h-full flex flex-col overflow-auto">
-                <CodeMirror
-                  className="w-full flex-1 text-base"
-                  value={activeTab.content}
-                  onChange={handleContentChange}
-                  theme={vscodeLight}
-                  extensions={[
-                    markdown({ codeLanguages: languages }),
-                    lineNumbers(),
-                    EditorView.lineWrapping,
-                  ]}
-                />
+              <div className="relative h-full w-full">
+                <div className="absolute inset-0 overflow-auto">
+                    <CodeMirror
+                        value={activeTab.content}
+                        onChange={handleContentChange}
+                        theme={vscodeLight}
+                        extensions={[
+                            markdown({ codeLanguages: languages }),
+                            lineNumbers(),
+                            EditorView.lineWrapping,
+                        ]}
+                        className="h-full w-full text-base"
+                    />
+                </div>
               </div>
             </Panel>
             <PanelResizeHandle className="w-2 bg-gray-200 hover:bg-gray-300" />

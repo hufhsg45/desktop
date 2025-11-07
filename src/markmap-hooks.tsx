@@ -13,6 +13,7 @@ import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { lineNumbers, EditorView } from '@codemirror/view';
 import { Tabs } from 'antd';
 import { appWindow } from '@tauri-apps/api/window';
+import { UnlistenFn } from '@tauri-apps/api/event';
 
 const initValue = `# markmap
 
@@ -172,17 +173,26 @@ function WindowControls() {
   const buttonStyle = "w-12 h-8 flex justify-center items-center hover:bg-gray-200 transition-colors duration-150";
 
   useEffect(() => {
-    let unlisten;
-    const updateMaximizedState = async () => {
+    let unlisten: UnlistenFn;
+
+    const setupListeners = async () => {
+      const maximized = await appWindow.isMaximized();
+      setIsMaximized(maximized);
+
+      unlisten = await appWindow.onResized(async () => {
         const maximized = await appWindow.isMaximized();
         setIsMaximized(maximized);
-    }
-    updateMaximizedState();
-    appWindow.onResized(() => {
-        updateMaximizedState();
-    }).then(ul => { unlisten = ul; });
-    return () => unlisten && unlisten();
-}, []);
+      });
+    };
+
+    setupListeners();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-shrink-0">

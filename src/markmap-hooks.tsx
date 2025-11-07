@@ -22,6 +22,25 @@ const initValue = `# markmap
 - interactive
 `;
 
+// --- SVG Icons for Window Controls --- //
+const MinimizeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14"/>
+  </svg>
+);
+
+const MaximizeIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8V5a2 2 0 0 1 2-2h3m11 0h-3a2 2 0 0 0-2 2v3m0 11v-3a2 2 0 0 1 2-2h3m-16 0h3a2 2 0 0 1 2 2v3"/>
+    </svg>
+);
+
+const CloseIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 6L6 18M6 6l12 12"/>
+    </svg>
+);
+
 function DownloadToolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement> }) {
   const [filename, setFilename] = useState('markmap');
   const [format, setFormat] = useState('png');
@@ -133,7 +152,7 @@ const initialItems = [
 function MenuBar() {
   const menuItemStyle = "px-3 py-1 text-sm hover:bg-gray-200 rounded";
   return (
-    <div className="flex items-center bg-gray-100 border-b border-t border-gray-200">
+    <div className="flex items-center bg-gray-100 border-b border-t border-gray-200 flex-shrink-0">
       <button className={menuItemStyle}>edit</button>
       <button className={menuItemStyle}>canvas</button>
       <button className={menuItemStyle}>preference</button>
@@ -143,22 +162,31 @@ function MenuBar() {
 }
 
 function WindowControls() {
-  const buttonStyle = "w-8 h-8 flex justify-center items-center hover:bg-gray-300";
+  const buttonStyle = "w-12 h-8 flex justify-center items-center hover:bg-gray-200 transition-colors duration-150";
   return (
-    <div className="flex">
-      <button className={buttonStyle} onClick={() => appWindow.minimize()}>鈥斺€</button>
-      <button className={buttonStyle} onClick={() => appWindow.toggleMaximize()}>鈻♀€</button>
-      <button className={`${buttonStyle} hover:bg-red-500 hover:text-white`} onClick={() => appWindow.close()}>脳</button>
+    <div className="flex flex-shrink-0">
+      <button className={buttonStyle} onClick={() => appWindow.minimize()}><MinimizeIcon /></button>
+      <button className={buttonStyle} onClick={() => appWindow.toggleMaximize()}><MaximizeIcon /></button>
+      <button className={`${buttonStyle} hover:bg-red-500 hover:text-white`} onClick={() => appWindow.close()}><CloseIcon /></button>
     </div>
   );
 }
 
 export default function MarkmapHooks() {
+  const [isTauri, setIsTauri] = useState(false);
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap>();
   const [activeKey, setActiveKey] = useState(initialItems[0].key);
   const [items, setItems] = useState(initialItems);
   const newTabIndex = useRef(1);
+
+  useEffect(() => {
+    // This check ensures Tauri-specific code only runs on the client-side
+    // and in the Tauri environment.
+    if (typeof window !== 'undefined' && window.__TAURI__) {
+      setIsTauri(true);
+    }
+  }, []);
 
   const activeTab = items.find(item => item.key === activeKey);
 
@@ -235,9 +263,9 @@ export default function MarkmapHooks() {
 
   return (
     <div className="h-full w-full flex flex-col bg-white rounded-lg overflow-hidden border border-gray-300">
-      {/* Custom Title Bar */}
-      <div className="flex justify-between items-center bg-gray-50 border-b border-gray-200">
-        <div data-tauri-drag-region className="flex-grow">
+      {/* --- Custom Title Bar --- */}
+      <div className="flex items-center bg-gray-50 border-b border-gray-200">
+        <div className="flex-shrink-0 pl-2">
           <Tabs
             type="editable-card"
             size="small"
@@ -254,12 +282,18 @@ export default function MarkmapHooks() {
             className="custom-tauri-tabs"
           />
         </div>
-        <WindowControls />
+        
+        {/* This is the draggable spacer */}
+        <div data-tauri-drag-region className="flex-grow h-8"></div>
+
+        <div className="flex-shrink-0">
+          {isTauri && <WindowControls />}
+        </div>
       </div>
 
       <MenuBar />
 
-      {/* Main Content */}
+      {/* --- Main Content --- */}
       <div className="flex-1 relative">
         {activeTab && (
           <PanelGroup direction="horizontal" className="w-full h-full">

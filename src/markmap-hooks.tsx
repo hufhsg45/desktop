@@ -11,6 +11,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { lineNumbers, EditorView } from '@codemirror/view';
+import { Tabs } from 'antd';
 
 const initValue = `# markmap
 
@@ -89,7 +90,7 @@ function DownloadToolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement> })
   };
 
   return (
-    <div className="absolute bottom-2 right-2 bg-gray-100 p-2 rounded shadow-lg border flex items-center gap-2">
+    <div className="absolute bottom-2 right-2 bg-gray-100 p-2 rounded shadow-lg border flex items-center gap-2 z-10">
       <input
         type="text"
         className="px-2 py-1 border rounded"
@@ -124,56 +125,149 @@ function DownloadToolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement> })
   );
 }
 
+const initialItems = [
+  { label: 'Untitled 1', children: null, key: '1', content: initValue },
+];
+
+function MenuBar() {
+  const menuItemStyle = "px-3 py-1 text-sm hover:bg-gray-200 rounded";
+  return (
+    <div className="flex items-center bg-gray-100 border-b border-t border-gray-200">
+      <button className={menuItemStyle}>edit</button>
+      <button className={menuItemStyle}>canvas</button>
+      <button className={menuItemStyle}>preference</button>
+      <button className={menuItemStyle}>about</button>
+    </div>
+  );
+}
+
 export default function MarkmapHooks() {
-  const [value, setValue] = useState(initValue);
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap>();
+  const [activeKey, setActiveKey] = useState(initialItems[0].key);
+  const [items, setItems] = useState(initialItems);
+  const newTabIndex = useRef(1);
+
+  const activeTab = items.find(item => item.key === activeKey);
 
   useEffect(() => {
-    if (!refSvg.current) return;
+    if (!refSvg.current || !activeTab) return;
+
+    // Recreate the markmap instance whenever the active tab changes
+    // to ensure interactivity is bound to the correct SVG element.
+    refMm.current?.destroy();
     const mm = Markmap.create(refSvg.current);
     refMm.current = mm;
+
+    const { root } = transformer.transform(activeTab.content);
+    mm.setData(root);
+    mm.fit();
+
     return () => {
       mm.destroy();
     };
-  }, []);
+  }, [activeTab]); // Rerun when the active tab changes
 
-  useEffect(() => {
-    const mm = refMm.current;
-    if (!mm) return;
-    const { root } = transformer.transform(value);
-    mm.setData(root);
-    mm.fit();
-  }, [value]);
+  const onChange = (newActiveKey: string) => {
+    setActiveKey(newActiveKey);
+  };
 
-  const handleChange = (value: string) => {
-    setValue(value);
+  const add = () => {
+    newTabIndex.current++;
+    const newActiveKey = `newTab${newTabIndex.current}`;
+    const newPanes = [...items];
+    newPanes.push({ label: `Untitled ${newTabIndex.current}`, children: null, key: newActiveKey, content: `# New Tab ${newTabIndex.current}` });
+    setItems(newPanes);
+    setActiveKey(newActiveKey);
+  };
+
+  const remove = (targetKey: string) => {
+    if (items.length === 1) return; // Do not allow removing the last tab
+    let newActiveKey = activeKey;
+    let lastIndex = -1;
+    items.forEach((item, i) => {
+      if (item.key === targetKey) {
+        lastIndex = i - 1;
+      }
+    });
+    const newPanes = items.filter((item) => item.key !== targetKey);
+    if (newPanes.length && newActiveKey === targetKey) {
+      if (lastIndex >= 0) {
+        newActiveKey = newPanes[lastIndex].key;
+      } else {
+        newActiveKey = newPanes[0].key;
+      }
+    }
+    setItems(newPanes);
+    setActiveKey(newActiveKey);
+  };
+
+  const onEdit = (
+    targetKey: React.MouseEvent | React.KeyboardEvent | string,
+    action: 'add' | 'remove',
+  ) => {
+    if (action === 'add') {
+      add();
+    } else {
+      remove(targetKey as string);
+    }
+  };
+
+  const handleContentChange = (newContent: string) => {
+    const newItems = items.map(item => {
+      if (item.key === activeKey) {
+        return { ...item, content: newContent };
+      }
+      return item;
+    });
+    setItems(newItems);
   };
 
   return (
-    <PanelGroup direction="horizontal" className="flex-1">
-      <Panel>
-        <div className="h-full flex flex-col overflow-auto">
-          <CodeMirror
-            className="w-full flex-1 border border-gray-400 text-base"
-            value={value}
-            onChange={handleChange}
-            theme={vscodeLight}
-            extensions={[
-              markdown({ codeLanguages: languages }),
-              lineNumbers(),
-              EditorView.lineWrapping,
-            ]}
-          />
-        </div>
-      </Panel>
-      <PanelResizeHandle className="w-2 bg-gray-200 hover:bg-gray-300" />
-      <Panel>
-        <div className="h-full relative border border-gray-300">
-          <svg className="w-full h-full" ref={refSvg} />
-          <DownloadToolbar svgRef={refSvg} />
-        </div>
-      </Panel>
-    </PanelGroup>
+    <div className="h-full w-full flex flex-col">
+      <Tabs
+        type="editable-card"
+        size="small"
+        onChange={onChange}
+        activeKey={activeKey}
+        onEdit={onEdit}
+        items={items.map(item => ({
+          label: item.label,
+          key: item.key,
+          closable: items.length > 1
+        }))}
+        hideAdd={false}
+        tabBarStyle={{ marginBottom: 0 }}
+      />
+      <MenuBar />
+      <div className="flex-1 relative">
+        {activeTab && (
+          <PanelGroup direction="horizontal" className="w-full h-full">
+            <Panel>
+              <div className="h-full flex flex-col overflow-auto">
+                <CodeMirror
+                  className="w-full flex-1 text-base"
+                  value={activeTab.content}
+                  onChange={handleContentChange}
+                  theme={vscodeLight}
+                  extensions={[
+                    markdown({ codeLanguages: languages }),
+                    lineNumbers(),
+                    EditorView.lineWrapping,
+                  ]}
+                />
+              </div>
+            </Panel>
+            <PanelResizeHandle className="w-2 bg-gray-200 hover:bg-gray-300" />
+            <Panel>
+              <div className="h-full relative border-l border-gray-300">
+                <svg className="w-full h-full" ref={refSvg} />
+                <DownloadToolbar svgRef={refSvg} />
+              </div>
+            </Panel>
+          </PanelGroup>
+        )}
+      </div>
+    </div>
   );
 }

@@ -12,6 +12,7 @@ import { languages } from '@codemirror/language-data';
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { lineNumbers, EditorView } from '@codemirror/view';
 import { Tabs } from 'antd';
+import { appWindow } from '@tauri-apps/api/window';
 
 const initValue = `# markmap
 
@@ -141,6 +142,17 @@ function MenuBar() {
   );
 }
 
+function WindowControls() {
+  const buttonStyle = "w-8 h-8 flex justify-center items-center hover:bg-gray-300";
+  return (
+    <div className="flex">
+      <button className={buttonStyle} onClick={() => appWindow.minimize()}>鈥斺€</button>
+      <button className={buttonStyle} onClick={() => appWindow.toggleMaximize()}>鈻♀€</button>
+      <button className={`${buttonStyle} hover:bg-red-500 hover:text-white`} onClick={() => appWindow.close()}>脳</button>
+    </div>
+  );
+}
+
 export default function MarkmapHooks() {
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap>();
@@ -153,8 +165,6 @@ export default function MarkmapHooks() {
   useEffect(() => {
     if (!refSvg.current || !activeTab) return;
 
-    // Recreate the markmap instance whenever the active tab changes
-    // to ensure interactivity is bound to the correct SVG element.
     refMm.current?.destroy();
     const mm = Markmap.create(refSvg.current);
     refMm.current = mm;
@@ -166,7 +176,7 @@ export default function MarkmapHooks() {
     return () => {
       mm.destroy();
     };
-  }, [activeTab]); // Rerun when the active tab changes
+  }, [activeTab]);
 
   const onChange = (newActiveKey: string) => {
     setActiveKey(newActiveKey);
@@ -182,7 +192,7 @@ export default function MarkmapHooks() {
   };
 
   const remove = (targetKey: string) => {
-    if (items.length === 1) return; // Do not allow removing the last tab
+    if (items.length === 1) return;
     let newActiveKey = activeKey;
     let lastIndex = -1;
     items.forEach((item, i) => {
@@ -224,22 +234,32 @@ export default function MarkmapHooks() {
   };
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <Tabs
-        type="editable-card"
-        size="small"
-        onChange={onChange}
-        activeKey={activeKey}
-        onEdit={onEdit}
-        items={items.map(item => ({
-          label: item.label,
-          key: item.key,
-          closable: items.length > 1
-        }))}
-        hideAdd={false}
-        tabBarStyle={{ marginBottom: 0 }}
-      />
+    <div className="h-full w-full flex flex-col bg-white rounded-lg overflow-hidden border border-gray-300">
+      {/* Custom Title Bar */}
+      <div className="flex justify-between items-center bg-gray-50 border-b border-gray-200">
+        <div data-tauri-drag-region className="flex-grow">
+          <Tabs
+            type="editable-card"
+            size="small"
+            onChange={onChange}
+            activeKey={activeKey}
+            onEdit={onEdit}
+            items={items.map(item => ({
+              label: item.label,
+              key: item.key,
+              closable: items.length > 1
+            }))}
+            hideAdd={false}
+            tabBarStyle={{ marginBottom: 0, borderBottom: 'none' }}
+            className="custom-tauri-tabs"
+          />
+        </div>
+        <WindowControls />
+      </div>
+
       <MenuBar />
+
+      {/* Main Content */}
       <div className="flex-1 relative">
         {activeTab && (
           <PanelGroup direction="horizontal" className="w-full h-full">

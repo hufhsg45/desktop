@@ -48,7 +48,7 @@ const CloseIcon = () => (
     </svg>
 );
 
-function DownloadToolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement> }) {
+function SnapshotModal({ svgRef, onClose }: { svgRef: React.RefObject<SVGSVGElement>, onClose: () => void }) {
   const [filename, setFilename] = useState('markmap');
   const [format, setFormat] = useState('png');
   const [scale, setScale] = useState<number | string>(2);
@@ -117,37 +117,62 @@ function DownloadToolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement> })
   };
 
   return (
-    <div className="absolute bottom-2 right-2 bg-gray-100 p-2 rounded shadow-lg border flex items-center gap-2 z-10">
-      <input
-        type="text"
-        className="px-2 py-1 border rounded"
-        value={filename}
-        onChange={(e) => setFilename(e.target.value)}
-        placeholder="Filename"
-      />
-      <select
-        className="px-2 py-1 border rounded"
-        value={format}
-        onChange={(e) => setFormat(e.target.value)}
-      >
-        <option value="png">PNG</option>
-        <option value="jpeg">JPEG</option>
-        <option value="svg">SVG</option>
-      </select>
-      <input
-        type="number"
-        className="w-20 px-2 py-1 border rounded"
-        value={scale}
-        onChange={(e) => setScale(e.target.value)}
-        min="1"
-        title="Resolution Scale"
-      />
-      <button
-        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-        onClick={handleDownload}
-      >
-        Download
-      </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-auto">
+        <h3 className="text-lg font-bold mb-4">Snapshot Export</h3>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="filename" className="text-sm font-medium text-gray-700">Filename:</label>
+            <input
+              id="filename"
+              type="text"
+              className="flex-grow px-2 py-1 border rounded"
+              value={filename}
+              onChange={(e) => setFilename(e.target.value)}
+              placeholder="Filename"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="format" className="text-sm font-medium text-gray-700">Format:</label>
+            <select
+              id="format"
+              className="flex-grow px-2 py-1 border rounded"
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+            >
+              <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="svg">SVG</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="scale" className="text-sm font-medium text-gray-700">Scale:</label>
+            <input
+              id="scale"
+              type="number"
+              className="w-20 px-2 py-1 border rounded"
+              value={scale}
+              onChange={(e) => setScale(e.target.value)}
+              min="1"
+              title="Resolution Scale"
+            />
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+            onClick={onClose}
+          >
+            Close
+          </button>
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={handleDownload}
+          >
+            Download
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -156,16 +181,113 @@ const initialItems = [
   { label: 'Untitled 1', children: null, key: '1', content: initValue },
 ];
 
-function MenuBar() {
+function MenuBar({ onAboutClick, onSnapshotClick }: { onAboutClick: () => void, onSnapshotClick: () => void }) {
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuBarRef = useRef<HTMLDivElement>(null);
   const menuItemStyle = "px-3 py-1 text-sm hover:bg-gray-200 rounded";
+  const dropdownItemStyle = "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 relative";
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuBarRef.current && !menuBarRef.current.contains(event.target as Node)) {
+        setOpenMenu(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuBarRef]);
+
+  const handleMenuToggle = (menuName: string) => {
+    setOpenMenu(openMenu && openMenu.startsWith(menuName) ? null : menuName);
+  };
+
+  const handleSubMenuToggle = (path: string) => {
+    setOpenMenu(openMenu === path ? null : path);
+  }
+
   return (
-    <div className="flex items-center bg-gray-100 border-b border-t border-gray-200 flex-shrink-0">
-      <button className={menuItemStyle}>edit</button>
-      <button className={menuItemStyle}>canvas</button>
-      <button className={menuItemStyle}>preference</button>
-      <button className={menuItemStyle}>about</button>
+    <div className="flex items-center bg-gray-100 border-b border-t border-gray-200 flex-shrink-0" ref={menuBarRef}>
+      {/* Editor Dropdown */}
+      <div className="relative">
+        <button className={menuItemStyle} onClick={() => handleMenuToggle('editor')}>
+          editor
+        </button>
+        {openMenu === 'editor' && (
+          <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+            <div className="py-1">
+              <button className={dropdownItemStyle}>open</button>
+              <button className={dropdownItemStyle}>save</button>
+              <button className={dropdownItemStyle}>save as...</button>
+              <button className={dropdownItemStyle}>undo</button>
+              <button className={dropdownItemStyle}>redo</button>
+              <button className={dropdownItemStyle}>find</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Canvas Dropdown */}
+      <div className="relative">
+        <button className={menuItemStyle} onClick={() => handleMenuToggle('canvas')}>
+          canvas
+        </button>
+        {openMenu?.startsWith('canvas') && (
+          <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+            <div className="py-1">
+              <button className={dropdownItemStyle} onClick={() => handleSubMenuToggle('canvas/export')}>
+                export <span className="absolute right-2 top-1/2 -translate-y-1/2">&gt;</span>
+              </button>
+              {openMenu === 'canvas/export' && (
+                <div className="origin-top-left absolute left-full top-0 mt-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-30">
+                    <button className={dropdownItemStyle} onClick={() => { onSnapshotClick(); setOpenMenu(null); }}>snapshot</button>
+                    <button className={dropdownItemStyle}>interactive</button>
+                </div>
+              )}
+              <button className={dropdownItemStyle}>background</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Preference Dropdown */}
+      <div className="relative">
+        <button className={menuItemStyle} onClick={() => handleMenuToggle('preference')}>
+          preference
+        </button>
+        {openMenu === 'preference' && (
+          <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+            <div className="py-1">
+              <button className={dropdownItemStyle}>theme</button>
+              <button className={dropdownItemStyle}>highlight style</button>
+              <button className={dropdownItemStyle}>canvas style</button>
+              <button className={dropdownItemStyle}>edit style</button>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <button className={menuItemStyle} onClick={onAboutClick}>about</button>
     </div>
   );
+}
+
+function AboutModal({ onClose }: { onClose: () => void }) {
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-auto text-center">
+                <h3 className="text-lg font-bold mb-2">About This App</h3>
+                <p className="text-sm mb-4">A markdown to mindmap app, based on markmap-lib, designed to get images quickly.</p>
+                <button 
+                    onClick={onClose}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    );
 }
 
 function WindowControls() {
@@ -207,6 +329,8 @@ function WindowControls() {
 
 export default function MarkmapHooks() {
   const [isTauri, setIsTauri] = useState(false);
+  const [isAboutModalOpen, setAboutModalOpen] = useState(false);
+  const [isSnapshotModalOpen, setSnapshotModalOpen] = useState(false);
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap>();
   const [activeKey, setActiveKey] = useState(initialItems[0].key);
@@ -321,7 +445,7 @@ export default function MarkmapHooks() {
         </div>
       </div>
 
-      <MenuBar />
+      <MenuBar onAboutClick={() => setAboutModalOpen(true)} onSnapshotClick={() => setSnapshotModalOpen(true)} />
 
       {/* --- Main Content --- */}
       <div className="flex-1 relative">
@@ -348,12 +472,13 @@ export default function MarkmapHooks() {
             <Panel>
               <div className="h-full relative border-l border-gray-300">
                 <svg className="w-full h-full" ref={refSvg} />
-                <DownloadToolbar svgRef={refSvg} />
               </div>
             </Panel>
           </PanelGroup>
         )}
       </div>
+      {isAboutModalOpen && <AboutModal onClose={() => setAboutModalOpen(false)} />}
+      {isSnapshotModalOpen && <SnapshotModal svgRef={refSvg} onClose={() => setSnapshotModalOpen(false)} />}
     </div>
   );
 }

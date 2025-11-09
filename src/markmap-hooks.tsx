@@ -12,8 +12,7 @@ import { languages } from '@codemirror/language-data';
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { lineNumbers, EditorView } from '@codemirror/view';
 import { Tabs } from 'antd';
-import { appWindow } from '@tauri-apps/api/window';
-import { UnlistenFn } from '@tauri-apps/api/event';
+import type { UnlistenFn } from '@tauri-apps/api/event';
 
 const initValue = `# markmap
 
@@ -169,7 +168,32 @@ function SnapshotModal({ svgRef, onClose }: { svgRef: React.RefObject<SVGSVGElem
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             onClick={handleDownload}
           >
-            Download
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InteractiveExportModal({ onConfirm, onClose }: { onConfirm: () => void, onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-auto text-center">
+        <h3 className="text-lg font-bold mb-4">Export as HTML?</h3>
+        <p className="text-sm mb-6">This will generate a self-contained, interactive HTML file of your mind map.</p>
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Close
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Done
           </button>
         </div>
       </div>
@@ -181,7 +205,7 @@ const initialItems = [
   { label: 'Untitled 1', children: null, key: '1', content: initValue },
 ];
 
-function MenuBar({ onAboutClick, onSnapshotClick }: { onAboutClick: () => void, onSnapshotClick: () => void }) {
+function MenuBar({ onAboutClick, onSnapshotClick, onInteractiveClick }: { onAboutClick: () => void, onSnapshotClick: () => void, onInteractiveClick: () => void }) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuBarRef = useRef<HTMLDivElement>(null);
   const menuItemStyle = "px-3 py-1 text-sm hover:bg-gray-200 rounded";
@@ -211,7 +235,7 @@ function MenuBar({ onAboutClick, onSnapshotClick }: { onAboutClick: () => void, 
     <div className="flex items-center bg-gray-100 border-b border-t border-gray-200 flex-shrink-0" ref={menuBarRef}>
       {/* Editor Dropdown */}
       <div className="relative">
-        <button className={menuItemStyle} onClick={() => handleMenuToggle('editor')}>
+        <button className={menuItemStyle} onClick={() => handleMenuToggle('editor')}> 
           editor
         </button>
         {openMenu === 'editor' && (
@@ -230,19 +254,19 @@ function MenuBar({ onAboutClick, onSnapshotClick }: { onAboutClick: () => void, 
 
       {/* Canvas Dropdown */}
       <div className="relative">
-        <button className={menuItemStyle} onClick={() => handleMenuToggle('canvas')}>
+        <button className={menuItemStyle} onClick={() => handleMenuToggle('canvas')}> 
           canvas
         </button>
         {openMenu?.startsWith('canvas') && (
           <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
             <div className="py-1">
-              <button className={dropdownItemStyle} onClick={() => handleSubMenuToggle('canvas/export')}>
+              <button className={dropdownItemStyle} onClick={() => handleSubMenuToggle('canvas/export')}> 
                 export <span className="absolute right-2 top-1/2 -translate-y-1/2">&gt;</span>
               </button>
               {openMenu === 'canvas/export' && (
                 <div className="origin-top-left absolute left-full top-0 mt-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-30">
                     <button className={dropdownItemStyle} onClick={() => { onSnapshotClick(); setOpenMenu(null); }}>snapshot</button>
-                    <button className={dropdownItemStyle}>interactive</button>
+                    <button className={dropdownItemStyle} onClick={() => { onInteractiveClick(); setOpenMenu(null); }}>interactive</button>
                 </div>
               )}
               <button className={dropdownItemStyle}>background</button>
@@ -253,7 +277,7 @@ function MenuBar({ onAboutClick, onSnapshotClick }: { onAboutClick: () => void, 
 
       {/* Preference Dropdown */}
       <div className="relative">
-        <button className={menuItemStyle} onClick={() => handleMenuToggle('preference')}>
+        <button className={menuItemStyle} onClick={() => handleMenuToggle('preference')}> 
           preference
         </button>
         {openMenu === 'preference' && (
@@ -296,33 +320,44 @@ function WindowControls() {
 
   useEffect(() => {
     let unlisten: UnlistenFn;
-
-    const setupListeners = async () => {
-      const maximized = await appWindow.isMaximized();
-      setIsMaximized(maximized);
-
-      unlisten = await appWindow.onResized(async () => {
+    const setup = async () => {
+        const { appWindow } = await import('@tauri-apps/api/window');
         const maximized = await appWindow.isMaximized();
         setIsMaximized(maximized);
-      });
+
+        unlisten = await appWindow.onResized(async () => {
+            const maximized = await appWindow.isMaximized();
+            setIsMaximized(maximized);
+        });
     };
-
-    setupListeners();
-
+    if (typeof window !== 'undefined' && window.__TAURI__) {
+      setup();
+    }
     return () => {
-      if (unlisten) {
-        unlisten();
-      }
+      if (unlisten) unlisten();
     };
   }, []);
 
+  const handleMinimize = async () => {
+    const { appWindow } = await import('@tauri-apps/api/window');
+    appWindow.minimize();
+  };
+  const handleToggleMaximize = async () => {
+    const { appWindow } = await import('@tauri-apps/api/window');
+    appWindow.toggleMaximize();
+  };
+  const handleClose = async () => {
+    const { appWindow } = await import('@tauri-apps/api/window');
+    appWindow.close();
+  };
+
   return (
     <div className="flex flex-shrink-0">
-      <button className={buttonStyle} onClick={() => appWindow.minimize()}><MinimizeIcon /></button>
-      <button className={buttonStyle} onClick={() => appWindow.toggleMaximize()}>
+      <button className={buttonStyle} onClick={handleMinimize}><MinimizeIcon /></button>
+      <button className={buttonStyle} onClick={handleToggleMaximize}>
         {isMaximized ? <RestoreIcon /> : <MaximizeIcon />}
       </button>
-      <button className={`${buttonStyle} hover:bg-red-500 hover:text-white`} onClick={() => appWindow.close()}><CloseIcon /></button>
+      <button className={`${buttonStyle} hover:bg-red-500 hover:text-white`} onClick={handleClose}><CloseIcon /></button>
     </div>
   );
 }
@@ -331,6 +366,8 @@ export default function MarkmapHooks() {
   const [isTauri, setIsTauri] = useState(false);
   const [isAboutModalOpen, setAboutModalOpen] = useState(false);
   const [isSnapshotModalOpen, setSnapshotModalOpen] = useState(false);
+  const [isInteractiveModalOpen, setInteractiveModalOpen] = useState(false);
+
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap>();
   const [activeKey, setActiveKey] = useState(initialItems[0].key);
@@ -344,6 +381,57 @@ export default function MarkmapHooks() {
   }, []);
 
   const activeTab = items.find(item => item.key === activeKey);
+
+  const handleInteractiveExport = async (content: string, label: string) => {
+    try {
+      const localTransformer = new transformer.constructor();
+      const { root, features } = localTransformer.transform(content);
+      const assets = localTransformer.getUsedAssets(features);
+      const title = label || 'markmap';
+      
+      // Dynamically import the correct function from markmap-render
+      const { fillTemplate } = await import('markmap-render');
+      
+      // Use the official fillTemplate method to generate the complete HTML
+      const finalHtml = fillTemplate(root, assets, {
+        title,
+      });
+    
+      if (isTauri) {
+        try {
+          const { save } = await import('@tauri-apps/api/dialog');
+          const { writeTextFile } = await import('@tauri-apps/api/fs');
+          const filePath = await save({
+            title: 'Save Interactive Markmap',
+            filters: [{
+              name: 'HTML Document',
+              extensions: ['html']
+            }]
+          });
+      
+          if (filePath) {
+            await writeTextFile(filePath, finalHtml);
+          }
+        } catch (err) {
+          console.error("Failed to save file via Tauri:", err);
+          alert("Error: Could not save the file.");
+        }
+      } else {
+        const blob = new Blob([finalHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert(`An unexpected error occurred during export: ${err.message || err}`);
+    }
+  };
 
   useEffect(() => {
     if (!refSvg.current || !activeTab) return;
@@ -445,7 +533,11 @@ export default function MarkmapHooks() {
         </div>
       </div>
 
-      <MenuBar onAboutClick={() => setAboutModalOpen(true)} onSnapshotClick={() => setSnapshotModalOpen(true)} />
+      <MenuBar 
+        onAboutClick={() => setAboutModalOpen(true)} 
+        onSnapshotClick={() => setSnapshotModalOpen(true)}
+        onInteractiveClick={() => setInteractiveModalOpen(true)}
+      />
 
       {/* --- Main Content --- */}
       <div className="flex-1 relative">
@@ -479,6 +571,15 @@ export default function MarkmapHooks() {
       </div>
       {isAboutModalOpen && <AboutModal onClose={() => setAboutModalOpen(false)} />}
       {isSnapshotModalOpen && <SnapshotModal svgRef={refSvg} onClose={() => setSnapshotModalOpen(false)} />}
+      {isInteractiveModalOpen && <InteractiveExportModal 
+        onClose={() => setInteractiveModalOpen(false)} 
+        onConfirm={() => {
+          if (activeTab) {
+            handleInteractiveExport(activeTab.content, activeTab.label);
+          }
+          setInteractiveModalOpen(false);
+        }} 
+      />}
     </div>
   );
 }

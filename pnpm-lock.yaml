@@ -41,6 +41,9 @@ importers:
       markmap-lib:
         specifier: ^0.18.0
         version: 0.18.12(markmap-common@0.18.9)
+      markmap-render:
+        specifier: ^0.18.12
+        version: 0.18.12(markmap-common@0.18.9)
       markmap-toolbar:
         specifier: ^0.18.0
         version: 0.18.12(markmap-common@0.18.9)
@@ -1510,6 +1513,11 @@ packages:
 
   markmap-lib@0.18.12:
     resolution: {integrity: sha512-WCA4OT+b71jYg0e4PS/6NRKqihod5OpPsvw1jEGHQwCtqQrY/yXXCeRyuL3axOS5cMy5pV8BSl4CwKfJU1LxJg==}
+    peerDependencies:
+      markmap-common: '*'
+
+  markmap-render@0.18.12:
+    resolution: {integrity: sha512-QRVpj5+1m9fazCUyMHEHeiYYyua9hNExkaET9ZZrq8nsekkza0fwIsjRYWtzytG2vDYkY5TYhqsJLy7mZLgE5A==}
     peerDependencies:
       markmap-common: '*'
 
@@ -3826,6 +3834,11 @@ snapshots:
       markmap-view: 0.18.12(markmap-common@0.18.9)
       prismjs: 1.30.0
       yaml: 2.8.1
+
+  markmap-render@0.18.12(markmap-common@0.18.9):
+    dependencies:
+      '@babel/runtime': 7.28.4
+      markmap-common: 0.18.9
 
   markmap-toolbar@0.18.12(markmap-common@0.18.9):
     dependencies:

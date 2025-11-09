@@ -15,6 +15,8 @@
     "allowlist": {
       "all": false,
       "window": { "all": true },
+      "dialog": { "all": true },
+      "fs": { "all": true },
       "shell": {
         "all": false,
         "open": true

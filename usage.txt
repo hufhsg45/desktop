@@ -1,0 +1,13 @@
+import { fillTemplate } from 'markmap-render';
+
+const html = fillTemplate(root, assets, extra);
+
+
+
+extra is optional, with following properties:
+
+    extra.jsonOptions - see JSON Options
+    extra.urlBuilder - a custom UrlBuilder
+
+    to build URLs for assets
+

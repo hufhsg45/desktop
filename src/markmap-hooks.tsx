@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Markmap } from 'markmap-view';
 import { transformer } from './markmap';
+import { Transformer } from 'markmap-lib';
 import {
   Panel,
   PanelGroup,
@@ -384,7 +385,7 @@ export default function MarkmapHooks() {
 
   const handleInteractiveExport = async (content: string, label: string) => {
     try {
-      const localTransformer = new transformer.constructor();
+      const localTransformer = new Transformer();
       const { root, features } = localTransformer.transform(content);
       const assets = localTransformer.getUsedAssets(features);
       const title = label || 'markmap';
@@ -393,9 +394,7 @@ export default function MarkmapHooks() {
       const { fillTemplate } = await import('markmap-render');
       
       // Use the official fillTemplate method to generate the complete HTML
-      const finalHtml = fillTemplate(root, assets, {
-        title,
-      });
+      const finalHtml = fillTemplate(root, assets);
     
       if (isTauri) {
         try {
@@ -429,7 +428,11 @@ export default function MarkmapHooks() {
       }
     } catch (err) {
       console.error("Export failed:", err);
-      alert(`An unexpected error occurred during export: ${err.message || err}`);
+      let message = 'An unknown error occurred.';
+      if (err instanceof Error) {
+        message = `An unexpected error occurred during export: ${err.message}`;
+      }
+      alert(message);
     }
   };
 

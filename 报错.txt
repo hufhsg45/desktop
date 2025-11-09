@@ -1,0 +1,19 @@
+Run pnpm tauri build
+
+> vite-react-typescript-starter@0.0.0 tauri D:\a\desktop\desktop
+> tauri "build"
+
+     Running beforeBuildCommand `pnpm build`
+
+> vite-react-typescript-starter@0.0.0 build D:\a\desktop\desktop
+> tsc -b && vite build
+
+src/markmap-hooks.tsx(387,36): error TS2351: This expression is not constructable.
+  Type 'Function' has no construct signatures.
+src/markmap-hooks.tsx(397,9): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type '{ baseJs?: JSItem[] | undefined; jsonOptions?: Partial<IMarkmapJSONOptions> | undefined; getOptions?: ((jsonOptions: Partial<IMarkmapJSONOptions>) => Partial<...>) | undefined; urlBuilder?: UrlBuilder | undefined; }'.
+src/markmap-hooks.tsx(432,60): error TS18046: 'err' is of type 'unknown'.
+ ELIFECYCLE  Command failed with exit code 2.
+       Error beforeBuildCommand `pnpm build` failed with exit code 2
+ ELIFECYCLE  Command failed with exit code 1.
+Error: Process completed with exit code 1.
+

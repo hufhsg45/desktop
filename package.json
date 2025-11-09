@@ -11,8 +11,10 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.10.0",
     "@codemirror/lang-markdown": "^6.5.0",
     "@codemirror/language-data": "^6.5.2",
+    "@codemirror/search": "^6.5.11",
     "@codemirror/view": "^6.38.6",
     "@tauri-apps/api": "^1.5.0",
     "@uiw/codemirror-theme-github": "^4.25.3",

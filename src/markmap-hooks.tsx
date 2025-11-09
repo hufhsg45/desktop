@@ -14,6 +14,8 @@ import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { lineNumbers, EditorView } from '@codemirror/view';
 import { Tabs } from 'antd';
 import type { UnlistenFn } from '@tauri-apps/api/event';
+import { undo, redo } from '@codemirror/commands';
+import { search, searchKeymap, openSearchPanel } from '@codemirror/search';
 
 const initValue = `# markmap
 
@@ -203,10 +205,30 @@ function InteractiveExportModal({ onConfirm, onClose }: { onConfirm: () => void,
 }
 
 const initialItems = [
-  { label: 'Untitled 1', children: null, key: '1', content: initValue },
+  { label: 'Untitled 1', children: null, key: '1', content: initValue, filePath: null },
 ];
 
-function MenuBar({ onAboutClick, onSnapshotClick, onInteractiveClick }: { onAboutClick: () => void, onSnapshotClick: () => void, onInteractiveClick: () => void }) {
+function MenuBar({
+  onAboutClick,
+  onSnapshotClick,
+  onInteractiveClick,
+  onOpenFile,
+  onSaveFile,
+  onSaveAs,
+  onUndo,
+  onRedo,
+  onFind,
+}: {
+  onAboutClick: () => void,
+  onSnapshotClick: () => void,
+  onInteractiveClick: () => void,
+  onOpenFile: () => void,
+  onSaveFile: () => void,
+  onSaveAs: () => void,
+  onUndo: () => void,
+  onRedo: () => void,
+  onFind: () => void,
+}) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuBarRef = useRef<HTMLDivElement>(null);
   const menuItemStyle = "px-3 py-1 text-sm hover:bg-gray-200 rounded";
@@ -224,30 +246,31 @@ function MenuBar({ onAboutClick, onSnapshotClick, onInteractiveClick }: { onAbou
     };
   }, [menuBarRef]);
 
-  const handleMenuToggle = (menuName: string) => {
-    setOpenMenu(openMenu && openMenu.startsWith(menuName) ? null : menuName);
+  const handleMenuClick = (menuName: string) => {
+    setOpenMenu(openMenu === menuName ? null : menuName);
   };
 
-  const handleSubMenuToggle = (path: string) => {
-    setOpenMenu(openMenu === path ? null : path);
-  }
+  const handleMenuItemClick = (action: () => void) => {
+    action();
+    setOpenMenu(null);
+  };
 
   return (
     <div className="flex items-center bg-gray-100 border-b border-t border-gray-200 flex-shrink-0" ref={menuBarRef}>
       {/* Editor Dropdown */}
       <div className="relative">
-        <button className={menuItemStyle} onClick={() => handleMenuToggle('editor')}> 
+        <button className={menuItemStyle} onClick={() => handleMenuClick('editor')}> 
           editor
         </button>
         {openMenu === 'editor' && (
           <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
             <div className="py-1">
-              <button className={dropdownItemStyle}>open</button>
-              <button className={dropdownItemStyle}>save</button>
-              <button className={dropdownItemStyle}>save as...</button>
-              <button className={dropdownItemStyle}>undo</button>
-              <button className={dropdownItemStyle}>redo</button>
-              <button className={dropdownItemStyle}>find</button>
+              <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onOpenFile)}>open</button>
+              <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onSaveFile)}>save</button>
+              <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onSaveAs)}>save as...</button>
+              <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onUndo)}>undo</button>
+              <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onRedo)}>redo</button>
+              <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onFind)}>find</button>
             </div>
           </div>
         )}
@@ -255,19 +278,19 @@ function MenuBar({ onAboutClick, onSnapshotClick, onInteractiveClick }: { onAbou
 
       {/* Canvas Dropdown */}
       <div className="relative">
-        <button className={menuItemStyle} onClick={() => handleMenuToggle('canvas')}> 
+        <button className={menuItemStyle} onClick={() => handleMenuClick('canvas')}> 
           canvas
         </button>
         {openMenu?.startsWith('canvas') && (
           <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
             <div className="py-1">
-              <button className={dropdownItemStyle} onClick={() => handleSubMenuToggle('canvas/export')}> 
+              <button className={dropdownItemStyle} onClick={() => handleMenuClick('canvas/export')}> 
                 export <span className="absolute right-2 top-1/2 -translate-y-1/2">&gt;</span>
               </button>
               {openMenu === 'canvas/export' && (
                 <div className="origin-top-left absolute left-full top-0 mt-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-30">
-                    <button className={dropdownItemStyle} onClick={() => { onSnapshotClick(); setOpenMenu(null); }}>snapshot</button>
-                    <button className={dropdownItemStyle} onClick={() => { onInteractiveClick(); setOpenMenu(null); }}>interactive</button>
+                    <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onSnapshotClick)}>snapshot</button>
+                    <button className={dropdownItemStyle} onClick={() => handleMenuItemClick(onInteractiveClick)}>interactive</button>
                 </div>
               )}
               <button className={dropdownItemStyle}>background</button>
@@ -278,7 +301,7 @@ function MenuBar({ onAboutClick, onSnapshotClick, onInteractiveClick }: { onAbou
 
       {/* Preference Dropdown */}
       <div className="relative">
-        <button className={menuItemStyle} onClick={() => handleMenuToggle('preference')}> 
+        <button className={menuItemStyle} onClick={() => handleMenuClick('preference')}> 
           preference
         </button>
         {openMenu === 'preference' && (
@@ -293,7 +316,7 @@ function MenuBar({ onAboutClick, onSnapshotClick, onInteractiveClick }: { onAbou
         )}
       </div>
       
-      <button className={menuItemStyle} onClick={onAboutClick}>about</button>
+      <button className={menuItemStyle} onClick={() => handleMenuItemClick(onAboutClick)}>about</button>
     </div>
   );
 }
@@ -371,6 +394,7 @@ export default function MarkmapHooks() {
 
   const refSvg = useRef<SVGSVGElement>(null);
   const refMm = useRef<Markmap>();
+  const viewRef = useRef<EditorView | null>(null);
   const [activeKey, setActiveKey] = useState(initialItems[0].key);
   const [items, setItems] = useState(initialItems);
   const newTabIndex = useRef(1);
@@ -436,6 +460,117 @@ export default function MarkmapHooks() {
     }
   };
 
+  const handleOpenFile = async () => {
+    if (!isTauri) {
+      alert("File operations are only supported in the Tauri app.");
+      return;
+    }
+    try {
+      const { open } = await import('@tauri-apps/api/dialog');
+      const { readTextFile } = await import('@tauri-apps/api/fs');
+      const { basename } = await import('@tauri-apps/api/path');
+
+      const selectedPath = await open({
+        multiple: false,
+        filters: [{ name: 'Markdown', extensions: ['md', 'mdx', 'txt'] }]
+      });
+
+      if (typeof selectedPath === 'string') {
+        const content = await readTextFile(selectedPath);
+        const filename = await basename(selectedPath);
+        
+        newTabIndex.current++;
+        const newActiveKey = `newTab${newTabIndex.current}`;
+        const newPane = { 
+          label: filename, 
+          children: null, 
+          key: newActiveKey, 
+          content: content,
+          filePath: selectedPath,
+        };
+        
+        setItems(prevItems => [...prevItems, newPane]);
+        setActiveKey(newActiveKey);
+      }
+    } catch (err) {
+      console.error("Failed to open file:", err);
+      alert("Error: Could not open the file.");
+    }
+  };
+
+  const handleSaveAs = async () => {
+    if (!activeTab) return;
+    if (!isTauri) {
+      alert("File operations are only supported in the Tauri app.");
+      return;
+    }
+    try {
+      const { save } = await import('@tauri-apps/api/dialog');
+      const { writeTextFile } = await import('@tauri-apps/api/fs');
+      const { basename } = await import('@tauri-apps/api/path');
+
+      const filePath = await save({
+        title: 'Save Markmap As',
+        filters: [{ name: 'Markdown', extensions: ['md'] }]
+      });
+
+      if (filePath) {
+        await writeTextFile(filePath, activeTab.content);
+        const filename = await basename(filePath);
+        // Update the current tab with the new file path and label
+        const newItems = items.map(item => {
+          if (item.key === activeKey) {
+            return { ...item, filePath: filePath, label: filename };
+          }
+          return item;
+        });
+        setItems(newItems);
+      }
+    } catch (err) {
+      console.error("Failed to save file:", err);
+      alert("Error: Could not save the file.");
+    }
+  };
+
+  const handleSaveFile = async () => {
+    if (!activeTab) return;
+    if (activeTab.filePath) {
+      if (!isTauri) {
+        alert("File operations are only supported in the Tauri app.");
+        return;
+      }
+      try {
+        const { writeTextFile } = await import('@tauri-apps/api/fs');
+        await writeTextFile(activeTab.filePath, activeTab.content);
+        // Maybe add a small notification "Saved!"
+      } catch (err) {
+        console.error("Failed to save file:", err);
+        alert("Error: Could not save the file.");
+      }
+    } else {
+      // If there's no file path, it's a new file, so trigger "Save As"
+      handleSaveAs();
+    }
+  };
+
+  const handleUndo = () => {
+    if (viewRef.current) {
+      undo(viewRef.current);
+    }
+  };
+
+  const handleRedo = () => {
+    if (viewRef.current) {
+      redo(viewRef.current);
+    }
+  };
+
+  const handleFind = () => {
+    if (viewRef.current) {
+      openSearchPanel(viewRef.current);
+    }
+  };
+
   useEffect(() => {
     if (!refSvg.current || !activeTab) return;
 
@@ -460,7 +595,7 @@ export default function MarkmapHooks() {
     newTabIndex.current++;
     const newActiveKey = `newTab${newTabIndex.current}`;
     const newPanes = [...items];
-    newPanes.push({ label: `Untitled ${newTabIndex.current}`, children: null, key: newActiveKey, content: `# New Tab ${newTabIndex.current}` });
+    newPanes.push({ label: `Untitled ${newTabIndex.current}`, children: null, key: newActiveKey, content: `# New Tab ${newTabIndex.current}`, filePath: null });
     setItems(newPanes);
     setActiveKey(newActiveKey);
   };
@@ -540,6 +675,12 @@ export default function MarkmapHooks() {
         onAboutClick={() => setAboutModalOpen(true)} 
         onSnapshotClick={() => setSnapshotModalOpen(true)}
         onInteractiveClick={() => setInteractiveModalOpen(true)}
+        onOpenFile={handleOpenFile}
+        onSaveFile={handleSaveFile}
+        onSaveAs={handleSaveAs}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onFind={handleFind}
       />
 
       {/* --- Main Content --- */}
@@ -552,6 +693,9 @@ export default function MarkmapHooks() {
                     <CodeMirror
                         value={activeTab.content}
                         onChange={handleContentChange}
+                        onCreateEditor={(view) => {
+                          viewRef.current = view;
+                        }}
                         theme={vscodeLight}
                         extensions={[
                             markdown({ codeLanguages: languages }),

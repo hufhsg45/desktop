@@ -15,7 +15,7 @@ import { lineNumbers, EditorView } from '@codemirror/view';
 import { Tabs } from 'antd';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { undo, redo } from '@codemirror/commands';
-import { search, searchKeymap, openSearchPanel } from '@codemirror/search';
+import { openSearchPanel } from '@codemirror/search';
 
 const initValue = `# markmap
 
@@ -204,7 +204,15 @@ function InteractiveExportModal({ onConfirm, onClose }: { onConfirm: () => void,
   );
 }
 
-const initialItems = [
+interface TabItem {
+  label: string;
+  children: null;
+  key: string;
+  content: string;
+  filePath: string | null;
+}
+
+const initialItems: TabItem[] = [
   { label: 'Untitled 1', children: null, key: '1', content: initValue, filePath: null },
 ];
 

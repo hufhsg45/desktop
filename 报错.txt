@@ -1,43 +1,29 @@
-[plugin:vite:react-babel] D:\react\src\markmap-hooks.tsx: 'return' outside of function. (1014:2)
-  1017 |       <div className="flex items-center bg-gray-50 border-b border-gray-200 flex-shrink-0">
+Run pnpm tauri build
 
-D:/react/src/markmap-hooks.tsx:1014:2
+> vite-react-typescript-starter@0.0.0 tauri D:\a\desktop\desktop
+> tauri "build"
 
-1012|    };
-1013|  
-1014|    return (
-   |    ^
-1015|      <div className="h-full w-full flex flex-col bg-white overflow-hidden">
-1016|        {/* --- Custom Title Bar --- */}
+     Running beforeBuildCommand `pnpm build`
 
-    at constructor (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:367:19)
-    at TypeScriptParserMixin.raise (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:6624:19)
-    at TypeScriptParserMixin.parseReturnStatement (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:13212:12)
-    at TypeScriptParserMixin.parseStatementContent (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:12874:21)
-    at TypeScriptParserMixin.parseStatementContent (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:9569:18)
-    at TypeScriptParserMixin.parseStatementLike (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:12843:17)
-    at TypeScriptParserMixin.parseModuleItem (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:12820:17)
-    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:13392:36)
-    at TypeScriptParserMixin.parseBlockBody (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:13385:10)
-    at TypeScriptParserMixin.parseProgram (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:12698:10)
-    at TypeScriptParserMixin.parseTopLevel (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:12688:25)
-    at TypeScriptParserMixin.parse (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:14568:25)
-    at TypeScriptParserMixin.parse (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:10183:18)
-    at parse (D:\react\node_modules\.pnpm\@babel+parser@7.28.5\node_modules\@babel\parser\lib\index.js:14602:38)
-    at parser (D:\react\node_modules\.pnpm\@babel+core@7.28.5\node_modules\@babel\core\lib\parser\index.js:41:34)
-    at parser.next (<anonymous>)
-    at normalizeFile (D:\react\node_modules\.pnpm\@babel+core@7.28.5\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
-    at normalizeFile.next (<anonymous>)
-    at run (D:\react\node_modules\.pnpm\@babel+core@7.28.5\node_modules\@babel\core\lib\transformation\index.js:22:50)
-    at run.next (<anonymous>)
-    at transform (D:\react\node_modules\.pnpm\@babel+core@7.28.5\node_modules\@babel\core\lib\transform.js:22:33)
-    at transform.next (<anonymous>)
-    at step (D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:261:32)
-    at D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:273:13
-    at async.call.result.err.err (D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:223:11)
-    at D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:189:28
-    at D:\react\node_modules\.pnpm\@babel+core@7.28.5\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
-    at D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:113:33
-    at step (D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:287:14)
-    at D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:273:13
-    at async.call.result.err.err (D:\react\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:223:11
+> vite-react-typescript-starter@0.0.0 build D:\a\desktop\desktop
+> tsc -b && vite build
+
+src/markmap-hooks.tsx(18,10): error TS6133: 'search' is declared but its value is never read.
+src/markmap-hooks.tsx(18,18): error TS6133: 'searchKeymap' is declared but its value is never read.
+src/markmap-hooks.tsx(492,18): error TS2345: Argument of type '(prevItems: { label: string; children: null; key: string; content: string; filePath: null; }[]) => ({ label: string; children: null; key: string; content: string; filePath: null; } | { label: string; children: null; key: string; content: string; filePath: string; })[]' is not assignable to parameter of type 'SetStateAction<{ label: string; children: null; key: string; content: string; filePath: null; }[]>'.
+  Type '(prevItems: { label: string; children: null; key: string; content: string; filePath: null; }[]) => ({ label: string; children: null; key: string; content: string; filePath: null; } | { label: string; children: null; key: string; content: string; filePath: string; })[]' is not assignable to type '(prevState: { label: string; children: null; key: string; content: string; filePath: null; }[]) => { label: string; children: null; key: string; content: string; filePath: null; }[]'.
+    Type '({ label: string; children: null; key: string; content: string; filePath: null; } | { label: string; children: null; key: string; content: string; filePath: string; })[]' is not assignable to type '{ label: string; children: null; key: string; content: string; filePath: null; }[]'.
+      Type '{ label: string; children: null; key: string; content: string; filePath: null; } | { label: string; children: null; key: string; content: string; filePath: string; }' is not assignable to type '{ label: string; children: null; key: string; content: string; filePath: null; }'.
+        Type '{ label: string; children: null; key: string; content: string; filePath: string; }' is not assignable to type '{ label: string; children: null; key: string; content: string; filePath: null; }'.
+          Types of property 'filePath' are incompatible.
+            Type 'string' is not assignable to type 'null'.
+src/markmap-hooks.tsx(527,18): error TS2345: Argument of type '({ label: string; children: null; key: string; content: string; filePath: null; } | { filePath: string; label: string; children: null; key: string; content: string; })[]' is not assignable to parameter of type 'SetStateAction<{ label: string; children: null; key: string; content: string; filePath: null; }[]>'.
+  Type '({ label: string; children: null; key: string; content: string; filePath: null; } | { filePath: string; label: string; children: null; key: string; content: string; })[]' is not assignable to type '{ label: string; children: null; key: string; content: string; filePath: null; }[]'.
+    Type '{ label: string; children: null; key: string; content: string; filePath: null; } | { filePath: string; label: string; children: null; key: string; content: string; }' is not assignable to type '{ label: string; children: null; key: string; content: string; filePath: null; }'.
+      Type '{ filePath: string; label: string; children: null; key: string; content: string; }' is not assignable to type '{ label: string; children: null; key: string; content: string; filePath: null; }'.
+        Types of property 'filePath' are incompatible.
+          Type 'string' is not assignable to type 'null'.
+ ELIFECYCLE  Command failed with exit code 2.
+       Error beforeBuildCommand `pnpm build` failed with exit code 2
+ ELIFECYCLE  Command failed with exit code 1.
+Error: Process completed with exit code 1.
